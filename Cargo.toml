@@ -6,7 +6,9 @@ edition = "2018"
 
 [dependencies]
 clap = "^2.33.0"
+dirs = "^2.0.2"
+chrono = "^0.4.10"
 
 [dependencies.rusqlite]
-version = "0.21.0"
+version = "^0.21.0"
 features = ["bundled"]
