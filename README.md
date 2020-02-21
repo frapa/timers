@@ -40,6 +40,14 @@ time: 19m 41s
 
 ## FAQ
 
+**Why should I choose `timers` instead of any other time tracking tool**
+
+3 reasons:
+
+- You're a nerd and like to show off how superior you are.
+- You believe global warming is a threat or you're laptop has a really shitty battery. 
+- Colored terminal output. This alone would be enough do discard any competing tool.
+
 **A command line tool? Come-on, it's 2020!**
 
 Command line can be very simple and let me focus my energy on more important features.
