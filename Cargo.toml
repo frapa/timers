@@ -8,6 +8,7 @@ edition = "2018"
 clap = "^2.33.0"
 dirs = "^2.0.2"
 chrono = "^0.4.10"
+colored = "1.9"
 
 [dependencies.rusqlite]
 version = "^0.21.0"

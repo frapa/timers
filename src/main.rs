@@ -1,4 +1,5 @@
-extern crate clap;
+use clap;
+use colored::*;
 
 use timers;
 
@@ -48,13 +49,20 @@ fn parse_args() -> clap::ArgMatches<'static> {
 
 fn print_status(task: &timers::Task) {
     println!(
-        "[{}] @{}: {}\n---\nlogs: {}\ntotal: {}",
-        task.status_text(),
-        task.id,
-        task.name,
-        task.logs.len(),
-        timers::format_duration(task.duration())
-    )
+        "{} {}\nstatus: {}\ntime: {}",
+        format!("@{}:", task.id).yellow().bold(),
+        task.name.red().bold(),
+        task.status_text().bold(),
+        timers::format_duration(task.duration()).bold()
+    );
+//    println!(
+//        "[{}] @{}: {}\n---\nlogs: {}\ntotal: {}",
+//        task.status_text(),
+//        task.id,
+//        task.name,
+//        task.logs.len(),
+//        timers::format_duration(task.duration())
+//    )
 }
 
 fn log_command(matches: &clap::ArgMatches) {

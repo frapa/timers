@@ -53,8 +53,8 @@ impl Task {
 
     pub fn status_text(&self) -> &str {
         match self.status() {
-            TaskStatus::Logging() => "LOGGING",
-            TaskStatus::Stopped() => "STOPPED",
+            TaskStatus::Logging() => "logging",
+            TaskStatus::Stopped() => "stopped",
         }
     }
 }
