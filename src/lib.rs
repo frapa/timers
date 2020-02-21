@@ -1,14 +1,14 @@
-extern crate rusqlite;
-extern crate dirs;
-extern crate chrono;
+use std::collections::HashMap;
+
+use dirs;
+use chrono;
 
 mod errors;
 pub use errors::{Error, ValueError};
-
 mod repo;
-pub use repo::{Task, Repo};
+pub use repo::{Log, Task, Repo, TaskStatus};
 
-pub fn get_repo() -> Result<Repo, Error> {
+fn get_repo() -> Result<Repo, Error> {
     let mut path = dirs::home_dir().unwrap();
     path.push(".timers");
 
@@ -61,15 +61,19 @@ pub fn get_current_log_task() -> Result<Option<Task>, Error> {
 
 pub fn stop_current_task() -> Result<Task, Error> {
     let repo = get_repo()?;
-    let task_option=  get_current_log_task()?;
 
-    match task_option {
+    match get_current_log_task()? {
         Some(mut task) => {
             repo.stop_task(&mut task)?;
             Ok(task)
         },
         None => Err(Error::Value(ValueError::new("Not task currently being logged.")))
     }
+}
+
+pub fn get_all_tasks() -> Result<HashMap<u32, Task>, Error> {
+    let repo = get_repo()?;
+    Ok(repo.list_tasks()?)
 }
 
 pub fn format_duration(duration: chrono::Duration) -> String {

@@ -2,6 +2,7 @@ use std::io::prelude::*;
 
 use clap;
 use colored::*;
+use itertools::Itertools;
 
 use timers;
 
@@ -13,7 +14,7 @@ fn main() {
         Some("status") => status_command(),
         Some("stop") => stop_command(),
         Some("report") => println!("report"),
-        Some("tasks") => println!("tasks"),
+        Some("tasks") => tasks_command(),
         _ => {}
     }
 }
@@ -91,6 +92,8 @@ fn log_command(matches: &clap::ArgMatches) {
             if answer.trim() == "n" || answer.trim() == "no" {
                 println!("aborting");
                 return
+            } else {
+                timers::stop_current_task();
             }
         },
         Err(err) => println!("Error finding current task: {}", err),
@@ -133,5 +136,30 @@ fn stop_command() {
             "Cannot stop because you're not logging on any task."
         ),
         Err(err) => println!("An stopping task: {}", err)
+    }
+}
+
+fn tasks_command() {
+    match timers::get_all_tasks() {
+        Ok(tasks) => {
+            for id in tasks.keys().sorted() {
+                let task = &tasks[id];
+                match task.status() {
+                    timers::TaskStatus::Logging() => println!(
+                        "{} {} [{}]",
+                        format!("@{}:", task.id).yellow().bold(),
+                        task.name.red().bold(),
+                        task.status_text()
+                    ),
+                    timers::TaskStatus::Stopped() => println!(
+                        "{} {} [{}]",
+                        format!("@{}:", task.id),
+                        task.name,
+                        task.status_text()
+                    ),
+                }
+            }
+        },
+        Err(err) => println!("Error retrieving tasks: {}", err)
     }
 }
