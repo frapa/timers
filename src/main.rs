@@ -1,3 +1,5 @@
+use std::io::prelude::*;
+
 use clap;
 use colored::*;
 
@@ -73,6 +75,28 @@ fn log_command(matches: &clap::ArgMatches) {
         println!("Cannot create empty task.");
     }
 
+    match timers::get_current_log_task() {
+        Ok(Some(task)) => {
+            println!(
+                "Currently logging on task {} {}",
+                format!("@{}:", task.id).yellow().bold(),
+                task.name.red().bold(),
+            );
+            print!("Do you want to start the new task? [y/n] ");
+            std::io::stdout().flush().unwrap();
+
+            let mut answer = String::new();
+            std::io::stdin().read_line(&mut answer).unwrap();
+
+            if answer.trim() == "n" || answer.trim() == "no" {
+                println!("aborting");
+                return
+            }
+        },
+        Err(err) => println!("Error finding current task: {}", err),
+        _ => {},
+    }
+
     if task.starts_with('@') {
         // This will strip multiple @ if present, currently it's not worth to fix this behavior
         let task_id_result = task.trim_start_matches('@').parse::<u32>();
@@ -82,9 +106,7 @@ fn log_command(matches: &clap::ArgMatches) {
                 Ok(task) => print_status(&task),
                 Err(err) => println!("Error logging on task: {}", err),
             },
-            Err(_) => {
-                println!("'{}' is an invalid task ID", task);
-            }
+            Err(_) => println!("'{}' is an invalid task ID", task),
         };
     } else {
         match timers::create_log_task(task) {

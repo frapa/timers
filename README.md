@@ -19,8 +19,12 @@ status: logging
 time: 9m 4s
 ```
 
-The `@1` is the task id. You can check the current logging status with
-`timers status`. You can stop logging with
+The `@1` is the task id. If you were already logging a task, `timers`
+will ask if you want to stop the current task and start the logging
+on the new one.
+ 
+You can check the current logging status with `timers status`.
+You can stop logging with
 
 ```bash
 $ timers stop
@@ -29,7 +33,7 @@ status: stopped
 time: 19m 41s
 ```
 
-You can then resume logging on a previous task by id:
+You can then resume logging on a previous task by id with
 
 ```bash
 $ timers log @1
