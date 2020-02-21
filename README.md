@@ -48,7 +48,7 @@ time: 19m 41s
 - You believe global warming is a threat or you're laptop has a really shitty battery. 
 - Colored terminal output. This alone would be enough do discard any competing tool.
 
-**A command line tool? Come on, it's 2020!**
+**A command line tool? Come on, we're in the 2020s!**
 
 Command line can be very simple and let me focus my energy on more important features.
 Plus it's much more efficient (battery, memory, CPU) than any GUI tool,
