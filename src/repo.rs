@@ -196,10 +196,16 @@ impl Repo {
 
     pub fn stop_task(&self, task: &mut Task) -> Result<(), Error> {
         task.logging = false;
-        let log = task.logs.last_mut();
 
-        match log {
-            Some(log) => log.end = Some(chrono::Utc::now()),
+        match task.logs.last_mut() {
+            Some(log) => {
+                if log.end.is_some() {
+                    return Err(Error::Value(
+                        ValueError::new("Task was not started, cannot stop logging.")
+                    ))
+                }
+                log.end = Some(chrono::Utc::now())
+            },
             None => return Err(Error::Value(
                 ValueError::new("Task was not started, cannot stop logging.")
             ))
