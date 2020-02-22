@@ -93,7 +93,10 @@ fn log_command(matches: &clap::ArgMatches) {
                 println!("aborting");
                 return
             } else {
-                timers::stop_current_task();
+                match timers::stop_current_task() {
+                    Err(err) => println!("Error finding current task: {}", err),
+                    _ => {},
+                }
             }
         },
         Err(err) => println!("Error finding current task: {}", err),

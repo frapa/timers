@@ -10,6 +10,8 @@ extremely fast and lightweight.
 
 ## How to use
 
+### The basics 
+
 To start logging time on a task, use
 
 ```bash
@@ -41,6 +43,16 @@ $ timers log @1
 status: logging
 time: 19m 41s
 ```
+
+### Introspection commands
+
+If you want to see the list of tasks, you can issue
+
+```bash
+$ timers tasks
+@1: My first task [stopped]
+@2: Another task [logging]
+``` 
 
 ## FAQ
 
