@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::Add;
 
 use dirs;
 use chrono;
@@ -76,22 +77,39 @@ pub fn get_all_tasks() -> Result<HashMap<u32, Task>, Error> {
     Ok(repo.list_tasks()?)
 }
 
+pub fn get_total_duration(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>
+) -> Result<chrono::Duration, Error> {
+    let repo = get_repo()?;
+
+    let mut total_duration = chrono::Duration::seconds(0);
+
+    for task in repo.list_tasks()?.values() {
+        total_duration = total_duration.add(task.duration_between(start, end));
+    }
+
+    Ok(total_duration)
+}
+
 pub fn format_duration(duration: chrono::Duration) -> String {
     let mut formatted_duration = String::new();
 
-    if duration.num_hours() > 24 {
+    if duration.num_hours() >= 24 {
         formatted_duration.push_str(format!("{}d ", duration.num_days()).as_str());
     }
 
-    if duration.num_minutes() > 60 {
+    if duration.num_minutes() >= 60 {
         formatted_duration.push_str(format!("{}h ", duration.num_hours()).as_str());
     }
 
-    if duration.num_seconds() > 60 {
+    if duration.num_seconds() >= 60 {
         formatted_duration.push_str(format!("{}m ", duration.num_minutes() % 60).as_str());
     }
 
-    formatted_duration.push_str(format!("{}s", duration.num_seconds() % 60).as_str());
+    if duration.num_seconds() < 60 {
+        formatted_duration.push_str(format!("{}s", duration.num_seconds() % 60).as_str());
+    }
 
     formatted_duration
 }

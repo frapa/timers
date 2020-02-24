@@ -52,7 +52,14 @@ If you want to see the list of tasks, you can issue
 $ timers tasks
 @1: My first task [stopped]
 @2: Another task [logging]
-``` 
+```
+
+You can get a the total time logged with the `report` command.
+It works like this:
+
+```bash
+$ timers report days
+```
 
 ## FAQ
 

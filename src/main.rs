@@ -1,10 +1,12 @@
 use std::io::prelude::*;
+use std::ops::{Sub, Add};
 
 use clap;
 use colored::*;
 use itertools::Itertools;
 
 use timers;
+use chrono::{Timelike, Datelike};
 
 fn main() {
     let matches = parse_args();
@@ -13,9 +15,12 @@ fn main() {
         Some("log") => log_command(matches.subcommand_matches("log").unwrap()),
         Some("status") => status_command(),
         Some("stop") => stop_command(),
-        Some("report") => println!("report"),
+        Some("report") => match matches.subcommand_matches("report").unwrap().subcommand_name() {
+            Some("days") => report_days_command(),
+            _ => report_days_command(),
+        }
         Some("tasks") => tasks_command(),
-        _ => {}
+        _ => {},
     }
 }
 
@@ -24,6 +29,7 @@ fn parse_args() -> clap::ArgMatches<'static> {
         .author("Francesco Pasa <francescopasa@gmail.com>")
         .version("0.1.0")
         .about("Track time spent on tasks")
+        .setting(clap::AppSettings::ArgRequiredElseHelp)
         .subcommand(clap::SubCommand::with_name("log")
             .about("Log time on a task")
             .arg(clap::Arg::with_name("TASK")
@@ -43,6 +49,9 @@ fn parse_args() -> clap::ArgMatches<'static> {
         )
         .subcommand(clap::SubCommand::with_name("report")
             .about("Report statistics on the tasks")
+            .subcommand(clap::SubCommand::with_name("days")
+                .about("Report statistics on days")
+            )
         )
         .subcommand(clap::SubCommand::with_name("tasks")
             .about("Print tasks")
@@ -164,5 +173,37 @@ fn tasks_command() {
             }
         },
         Err(err) => println!("Error retrieving tasks: {}", err)
+    }
+}
+
+fn report_days_command() {
+    let week_offset = chrono::Local::now().weekday().num_days_from_monday() as i64;
+    let week_start = chrono::Local::now()
+        .with_hour(0).unwrap()
+        .with_minute(0).unwrap()
+        .with_second(0).unwrap()
+        .with_nanosecond(0).unwrap()
+        .sub(chrono::Duration::days(week_offset))
+        .with_timezone(&chrono::Utc);
+
+    for i in 0..7 {
+        let start = week_start.add(chrono::Duration::days(i));
+        let end = week_start.add(chrono::Duration::days(i+1));
+
+        let local_start = start.with_timezone(&chrono::Local);
+        println!("{} {}", local_start.to_rfc3339(), start.add(chrono::Duration::hours(0)).format("%a"));
+
+        match timers::get_total_duration(start, end) {
+            Ok(duration) => println!(
+                "{}: {}",
+                if i < 5 {
+                    start.format("%u").to_string().green()
+                } else {
+                    start.format("%u").to_string().red()
+                },
+                timers::format_duration(duration)
+            ),
+            Err(err) => println!("Error computing duration: {}", err)
+        }
     }
 }

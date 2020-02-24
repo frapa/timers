@@ -1,5 +1,6 @@
 use std::io::prelude::*;
 use std::collections::HashMap;
+use std::ops::Add;
 
 use crate::errors::{Error, ValueError};
 
@@ -9,11 +10,35 @@ pub struct Log {
 }
 
 impl Log {
-    fn duration(&self) -> chrono::Duration {
+    pub fn duration(&self) -> chrono::Duration {
         if let Some(end) = self.end {
             end.signed_duration_since(self.start)
         } else {
             chrono::Utc::now().signed_duration_since(self.start)
+        }
+    }
+
+    pub fn duration_between(
+        &self,
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>
+    ) -> chrono::Duration {
+        let task_end = if self.end.is_none() {
+            chrono::Utc::now()
+        } else {
+            self.end.unwrap()
+        };
+
+        if start.le(&self.start) && end.ge(&task_end) {
+            self.duration()
+        } else if start.gt(&self.start) && end.ge(&task_end) {
+            let duration = task_end.signed_duration_since(start);
+            if duration.num_seconds() >= 0 { duration } else { chrono::Duration::seconds(0) }
+        } else if start.le(&self.start) && end.lt(&task_end) {
+            let duration = end.signed_duration_since(self.start);
+            if duration.num_seconds() >= 0 { duration } else { chrono::Duration::seconds(0) }
+        } else {
+            end.signed_duration_since(start)
         }
     }
 }
@@ -39,6 +64,20 @@ impl Task {
         }
 
         duration
+    }
+
+    pub fn duration_between(
+        &self,
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>
+    ) -> chrono::Duration {
+        let mut total = chrono::Duration::seconds(0);
+
+        for log in self.logs.iter() {
+            total = total.add(log.duration_between(start, end));
+        }
+
+        total
     }
 
     pub fn status(&self) -> TaskStatus {
