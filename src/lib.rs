@@ -28,18 +28,26 @@ pub fn create_task(name: &str) -> Result<Task, Error> {
     Ok(repo.create_task(name)?)
 }
 
-pub fn log_task(id: u32) -> Result<Task, Error> {
+pub fn log_task_at(id: u32, at: chrono::DateTime<chrono::Utc>) -> Result<Task, Error> {
     let repo = get_repo()?;
     let mut task = repo.get_task(id)?;
-    repo.log_task(&mut task)?;
+    repo.log_task(&mut task, at)?;
+    Ok(task)
+}
+
+pub fn log_task(id: u32) -> Result<Task, Error> {
+    Ok(log_task_at(id, chrono::Utc::now())?)
+}
+
+pub fn create_log_task_at(name: &str, at: chrono::DateTime<chrono::Utc>) -> Result<Task, Error> {
+    let repo = get_repo()?;
+    let mut task = repo.create_task(name)?;
+    repo.log_task(&mut task, at)?;
     Ok(task)
 }
 
 pub fn create_log_task(name: &str) -> Result<Task, Error> {
-    let repo = get_repo()?;
-    let mut task = repo.create_task(name)?;
-    repo.log_task(&mut task)?;
-    Ok(task)
+    Ok(create_log_task_at(name, chrono::Utc::now())?)
 }
 
 pub fn get_current_log_task() -> Result<Option<Task>, Error> {
@@ -60,16 +68,20 @@ pub fn get_current_log_task() -> Result<Option<Task>, Error> {
     }
 }
 
-pub fn stop_current_task() -> Result<Task, Error> {
+pub fn stop_current_task_at(at: chrono::DateTime<chrono::Utc>) -> Result<Task, Error> {
     let repo = get_repo()?;
 
     match get_current_log_task()? {
         Some(mut task) => {
-            repo.stop_task(&mut task)?;
+            repo.stop_task(&mut task, at)?;
             Ok(task)
         },
         None => Err(Error::Value(ValueError::new("Not task currently being logged.")))
     }
+}
+
+pub fn stop_current_task() -> Result<Task, Error> {
+    Ok(stop_current_task_at(chrono::Utc::now())?)
 }
 
 pub fn get_all_tasks() -> Result<HashMap<u32, Task>, Error> {

@@ -221,10 +221,14 @@ impl Repo {
         Ok(max_id + 1)
     }
 
-    pub fn log_task(&self, task: &mut Task) -> Result<(), Error> {
+    pub fn log_task(
+        &self,
+        task: &mut Task,
+        time: chrono::DateTime<chrono::Utc>
+    ) -> Result<(), Error> {
         task.logging = true;
         task.logs.push(Log {
-            start: chrono::Utc::now(),
+            start: time,
             end: None,
         });
 
@@ -233,7 +237,11 @@ impl Repo {
         Ok(())
     }
 
-    pub fn stop_task(&self, task: &mut Task) -> Result<(), Error> {
+    pub fn stop_task(
+        &self,
+        task: &mut Task,
+        time: chrono::DateTime<chrono::Utc>
+    ) -> Result<(), Error> {
         task.logging = false;
 
         match task.logs.last_mut() {
@@ -243,7 +251,8 @@ impl Repo {
                         ValueError::new("Task was not started, cannot stop logging.")
                     ))
                 }
-                log.end = Some(chrono::Utc::now())
+
+                log.end = Some(time)
             },
             None => return Err(Error::Value(
                 ValueError::new("Task was not started, cannot stop logging.")

@@ -6,7 +6,6 @@ use itertools::Itertools;
 use chrono::{Timelike, Datelike};
 
 mod util;
-use util::*;
 mod basic_op;
 use basic_op::*;
 
@@ -49,6 +48,7 @@ fn parse_args() -> clap::ArgMatches<'static> {
                 .long("at")
                 .takes_value(true)
                 .value_name("TIME")
+                .allow_hyphen_values(true)
                 .help("Start logging at the specified time.")
             )
         )
@@ -68,27 +68,6 @@ fn parse_args() -> clap::ArgMatches<'static> {
             .about("Print tasks")
         )
         .get_matches();
-}
-
-
-fn status_command() {
-    match timers::get_current_log_task() {
-        Ok(task) => match task {
-            Some(task) => print_status(&task),
-            None => println!("You are not logging on any task.")
-        },
-        Err(err) => println!("Error finding current task: {}", err),
-    }
-}
-
-fn stop_command() {
-    match timers::stop_current_task() {
-        Ok(task) => print_status(&task),
-        Err(timers::Error::Value(_)) => println!(
-            "Cannot stop because you're not logging on any task."
-        ),
-        Err(err) => println!("An stopping task: {}", err)
-    }
 }
 
 fn tasks_command() {

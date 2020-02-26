@@ -1,8 +1,10 @@
 use std::io::prelude::*;
+use std::num::ParseIntError;
+use std::ops::Add;
 
 use colored::*;
 use chrono;
-use chrono::{Timelike, Datelike};
+use chrono::{Timelike};
 
 pub fn user_input(prompt: &str) -> String {
     print!("{}", prompt);
@@ -33,15 +35,20 @@ pub fn print_status(task: &timers::Task) {
 }
 
 pub fn parse_time(raw_time: &str) -> Option<chrono::DateTime<chrono::Utc>> {
-    let mut d = chrono::NaiveDate::from_ymd(2020, 1, 1);
-    d = d.with_day(d.day()-1).unwrap();
-    println!("{}", d);
-
     if raw_time.starts_with("y") {
         let stripped_time = raw_time.get(1..).unwrap();
         return match parse_time(stripped_time) {
-            Some(datetime) =>
-                Some(datetime.with_day(datetime.day()-1).unwrap()),
+            Some(datetime) => Some(datetime - chrono::Duration::days(1)),
+            None => None
+        }
+    }
+
+    if raw_time.starts_with("-") || raw_time.starts_with("+") {
+        let sign = raw_time.get(..1).unwrap();
+        let stripped_time = raw_time.get(1..).unwrap();
+        return match parse_duration(stripped_time) {
+            Some(duration) =>
+                Some(chrono::Utc::now() + if sign == "+" {duration} else {-duration}),
             None => None
         }
     }
@@ -67,9 +74,47 @@ pub fn try_parse_time(raw_time: &str, fmt: &str) -> Option<chrono::DateTime<chro
                 .with_second(parsed_time.second()).unwrap()
                 .with_nanosecond(parsed_time.nanosecond()).unwrap()
                 .with_timezone(&chrono::Utc);
-            println!("{}", datetime.to_rfc3339());
             Some(datetime)
         },
         Err(_) => None,
     }
+}
+
+pub fn parse_duration(raw_duration: &str) -> Option<chrono::Duration> {
+    return if raw_duration.to_string().contains(":") {
+        let split: Vec<&str> = raw_duration.splitn(2, ":").collect();
+        let raw_hours = split[0];
+        let raw_minutes = split[1];
+
+        let mut duration  = chrono::Duration::seconds(0);
+        match parse_int(raw_hours) {
+            Ok(hours) => duration = duration.add(chrono::Duration::hours(hours)),
+            Err(_) => {
+                println!("Duration format '{}' not understood", raw_duration);
+                return None;
+            },
+        }
+
+        match parse_int(raw_minutes) {
+            Ok(minutes) => duration = duration.add(chrono::Duration::minutes(minutes)),
+            Err(_) => {
+                println!("Duration format '{}' not understood", raw_duration);
+                return None;
+            },
+        }
+
+        Some(duration)
+    } else {
+        match parse_int(raw_duration) {
+            Ok(minutes) => Some(chrono::Duration::minutes(minutes)),
+            Err(_) => {
+                println!("Duration format '{}' not understood", raw_duration);
+                None
+            },
+        }
+    }
+}
+
+fn parse_int(text: &str) -> Result<i64, ParseIntError> {
+    Ok(text.trim().parse::<i64>()?)
 }

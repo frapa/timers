@@ -13,7 +13,7 @@ pub fn log_command(matches: &clap::ArgMatches) {
         println!("Cannot create empty task.");
     }
 
-    let time= match matches.value_of("AT") {
+    let time = match matches.value_of("AT") {
         Some(raw_time) => match parse_time(raw_time) {
             Some(time) => time,
             None => return
@@ -21,32 +21,33 @@ pub fn log_command(matches: &clap::ArgMatches) {
         None => chrono::Utc::now(),
     };
 
-    println!("{}", time.to_rfc3339());
-
-    if !confirm_stop_current() {
+    if !confirm_stop_current(time) {
         return
     }
 
     if task.starts_with('@') {
-        // This will strip multiple @ if present, currently it's not worth to fix this behavior
-        let task_id_result = task.trim_start_matches('@').parse::<u32>();
+        // This will strip multiple @ if present,
+        // currently it's not worth to fix this behavior
+        let task_id_result = task
+            .trim_start_matches('@')
+            .parse::<u32>();
 
         match task_id_result {
-            Ok(task_id) => match timers::log_task(task_id) {
+            Ok(task_id) => match timers::log_task_at(task_id, time) {
                 Ok(task) => print_status(&task),
                 Err(err) => println!("Error logging on task: {}", err),
             },
             Err(_) => println!("'{}' is an invalid task ID", task),
         };
     } else {
-        match timers::create_log_task(task) {
+        match timers::create_log_task_at(task, time) {
             Ok(task) => print_status(&task),
             Err(err) => println!("Error creating task: {}", err),
         }
     }
 }
 
-fn confirm_stop_current() -> bool {
+fn confirm_stop_current(time: chrono::DateTime<chrono::Utc>) -> bool {
     match timers::get_current_log_task() {
         Ok(Some(task)) => {
             println!(
@@ -60,9 +61,9 @@ fn confirm_stop_current() -> bool {
                 println!("aborting");
                 false
             } else {
-                match timers::stop_current_task() {
+                match timers::stop_current_task_at(time) {
                     Err(err) => {
-                        println!("Error finding current task: {}", err);
+                        println!("Error stopping current task: {}", err);
                         false
                     },
                     // stopped current, continue with new
@@ -76,5 +77,25 @@ fn confirm_stop_current() -> bool {
         },
         // no current task, continue with new
         _ => true,
+    }
+}
+
+pub fn status_command() {
+    match timers::get_current_log_task() {
+        Ok(task) => match task {
+            Some(task) => print_status(&task),
+            None => println!("You are not logging on any task.")
+        },
+        Err(err) => println!("Error finding current task: {}", err),
+    }
+}
+
+pub fn stop_command() {
+    match timers::stop_current_task() {
+        Ok(task) => print_status(&task),
+        Err(timers::Error::Value(_)) => println!(
+            "Cannot stop because you're not logging on any task."
+        ),
+        Err(err) => println!("An stopping task: {}", err)
     }
 }
