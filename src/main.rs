@@ -1,16 +1,12 @@
-use std::ops::{Sub, Add};
-
 use clap;
-use colored::*;
-use chrono::{Timelike, Datelike};
 
 mod util;
 mod basic_op;
 use basic_op::*;
 mod list_op;
 use list_op::*;
-
-use timers;
+mod report_op;
+use report_op::*;
 
 fn main() {
     let matches = parse_args();
@@ -74,6 +70,10 @@ fn parse_args() -> clap::ArgMatches<'static> {
             .subcommand(clap::SubCommand::with_name("days")
                 .about("Report statistics on days")
             )
+            .arg(clap::Arg::with_name("no-tot")
+                .long("--no-tot")
+                .help("Omit printing totals")
+            )
         )
         .subcommand(clap::SubCommand::with_name("tasks")
             .about("Print tasks")
@@ -84,35 +84,4 @@ fn parse_args() -> clap::ArgMatches<'static> {
             )
         )
         .get_matches();
-}
-
-fn report_days_command(matches: &clap::ArgMatches) {
-    let week_offset = chrono::Local::now().weekday().num_days_from_monday() as i64;
-    let week_start = chrono::Local::now()
-        .with_hour(0).unwrap()
-        .with_minute(0).unwrap()
-        .with_second(0).unwrap()
-        .with_nanosecond(0).unwrap()
-        .sub(chrono::Duration::days(week_offset))
-        .with_timezone(&chrono::Utc);
-
-    for i in 0..7 {
-        let start = week_start.add(chrono::Duration::days(i));
-        let end = week_start.add(chrono::Duration::days(i+1));
-
-        let local_start = start.with_timezone(&chrono::Local);
-
-        match timers::get_total_duration(start, end) {
-            Ok(duration) => println!(
-                "{}: {}",
-                if i < 5 {
-                    local_start.format("%a").to_string().green()
-                } else {
-                    local_start.format("%a").to_string().red()
-                },
-                timers::format_duration(duration)
-            ),
-            Err(err) => println!("Error computing duration: {}", err)
-        }
-    }
 }
