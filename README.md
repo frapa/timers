@@ -81,7 +81,7 @@ Sun: 0s
 
 ### "Advanced" features
 
-You can start logging at a certain time with:
+You can start logging at a certain time with the `--at` option:
 
 ```bash
 $ timers log "Your task" --at 10:34
