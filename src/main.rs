@@ -2,12 +2,13 @@ use std::ops::{Sub, Add};
 
 use clap;
 use colored::*;
-use itertools::Itertools;
 use chrono::{Timelike, Datelike};
 
 mod util;
 mod basic_op;
 use basic_op::*;
+mod list_op;
+use list_op::*;
 
 use timers;
 
@@ -18,11 +19,14 @@ fn main() {
         Some("log") => log_command(matches.subcommand_matches("log").unwrap()),
         Some("status") => status_command(),
         Some("stop") => stop_command(),
-        Some("report") => match matches.subcommand_matches("report").unwrap().subcommand_name() {
-            Some("days") => report_days_command(),
-            _ => report_days_command(),
+        Some("report") => {
+            let submatches = matches.subcommand_matches("report").unwrap();
+            match submatches.subcommand_name() {
+                Some("days") => report_days_command(submatches),
+                _ => report_days_command(submatches),
+            }
         }
-        Some("tasks") => tasks_command(),
+        Some("tasks") => tasks_command(matches.subcommand_matches("tasks").unwrap()),
         _ => {},
     }
 }
@@ -66,36 +70,16 @@ fn parse_args() -> clap::ArgMatches<'static> {
         )
         .subcommand(clap::SubCommand::with_name("tasks")
             .about("Print tasks")
+            .arg(clap::Arg::with_name("long")
+                .short("-l")
+                .long("--long")
+                .help("Display more information for each task")
+            )
         )
         .get_matches();
 }
 
-fn tasks_command() {
-    match timers::get_all_tasks() {
-        Ok(tasks) => {
-            for id in tasks.keys().sorted() {
-                let task = &tasks[id];
-                match task.status() {
-                    timers::TaskStatus::Logging() => println!(
-                        "{} {} [{}]",
-                        format!("@{}:", task.id).yellow().bold(),
-                        task.name.red().bold(),
-                        task.status_text()
-                    ),
-                    timers::TaskStatus::Stopped() => println!(
-                        "{} {} [{}]",
-                        format!("@{}:", task.id),
-                        task.name,
-                        task.status_text()
-                    ),
-                }
-            }
-        },
-        Err(err) => println!("Error retrieving tasks: {}", err)
-    }
-}
-
-fn report_days_command() {
+fn report_days_command(matches: &clap::ArgMatches) {
     let week_offset = chrono::Local::now().weekday().num_days_from_monday() as i64;
     let week_start = chrono::Local::now()
         .with_hour(0).unwrap()

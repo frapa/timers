@@ -4,7 +4,8 @@ use std::ops::Add;
 
 use colored::*;
 use chrono;
-use chrono::{Timelike};
+use chrono::{Timelike, TimeZone};
+use chrono::offset::LocalResult::Single;
 
 pub fn user_input(prompt: &str) -> String {
     print!("{}", prompt);
@@ -24,14 +25,6 @@ pub fn print_status(task: &timers::Task) {
         task.status_text().bold(),
         timers::format_duration(task.duration()).bold()
     );
-//    println!(
-//        "[{}] @{}: {}\n---\nlogs: {}\ntotal: {}",
-//        task.status_text(),
-//        task.id,
-//        task.name,
-//        task.logs.len(),
-//        timers::format_duration(task.duration())
-//    )
 }
 
 pub fn parse_time(raw_time: &str) -> Option<chrono::DateTime<chrono::Utc>> {
@@ -61,6 +54,14 @@ pub fn parse_time(raw_time: &str) -> Option<chrono::DateTime<chrono::Utc>> {
         return Some(datetime)
     }
 
+    if let Some(datetime) = try_parse_datetime(raw_time, "%Y-%m-%d %H:%M") {
+        return Some(datetime)
+    }
+
+    if let Some(datetime) = try_parse_datetime(raw_time, "%Y-%m-%d %H:%M:%S") {
+        return Some(datetime)
+    }
+
     println!("Time format '{}' not understood", raw_time);
     None
 }
@@ -69,13 +70,25 @@ pub fn try_parse_time(raw_time: &str, fmt: &str) -> Option<chrono::DateTime<chro
     match chrono::NaiveTime::parse_from_str(raw_time, fmt) {
         Ok(parsed_time) => {
             let datetime = chrono::Local::now()
-                .with_hour(parsed_time.hour()).unwrap()
-                .with_minute(parsed_time.minute()).unwrap()
-                .with_second(parsed_time.second()).unwrap()
                 .with_nanosecond(parsed_time.nanosecond()).unwrap()
+                .with_second(parsed_time.second()).unwrap()
+                .with_minute(parsed_time.minute()).unwrap()
+                .with_hour(parsed_time.hour()).unwrap()
                 .with_timezone(&chrono::Utc);
             Some(datetime)
         },
+        Err(_) => None,
+    }
+}
+
+pub fn try_parse_datetime(raw_datetime: &str, fmt: &str) -> Option<chrono::DateTime<chrono::Utc>> {
+    match chrono::NaiveDateTime::parse_from_str(raw_datetime, fmt) {
+        Ok(parsed_datetime) => {
+            match chrono::Local.from_local_datetime(&parsed_datetime) {
+                Single(datetime) => Some(datetime.with_timezone(&chrono::Utc)),
+                _ => None,
+            }
+        }
         Err(_) => None,
     }
 }

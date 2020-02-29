@@ -8,6 +8,14 @@ command line interface. With `timers` you can:
 `timers` is written in rust and uses simple text files to save the tasks, which make it
 extremely fast and lightweight.
 
+## Install
+
+On linux, just download the precompiled binary:
+
+```bash
+EXEC='/usr/local/bin/timers' && sudo wget https://github.com/frapa/timers/releases/latest/download/timers -O $EXEC && sudo chmod +x $EXEC
+```
+
 ## How to use
 
 ### The basics 
@@ -78,6 +86,8 @@ $ timers log "Your task" --at 10:34
 $ timers log "Your task" --at y10:34  # yesterday at 10:34
 # Or you can use relative time with + and -
 $ timers log "Your task" --at -10  # 10 minutes ago
+# For custom things, you can specify the full local date with time
+$ timers log "Your task" --at "2019-11-10 11:10"
 ```
 
 The nice thing is that if you're already logging, it will end
