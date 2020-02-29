@@ -99,12 +99,12 @@ tasks will be logged!
 
 ## FAQ
 
-**Why should I choose `timers` instead of any other time tracking tool**
+**Why should I choose `timers` instead of any other time tracking tool?**
 
 3 reasons:
 
 - You like simple things like plain text files. Who ever want a database instead of those?
-- Let your colleagues think you're a genius who's always mysteriously typing into a black box.
+- Let your colleagues think you're a genius who's always mysteriously typing into a black box (the terminal).
 - You believe global warming is a threat or you're laptop has a really shitty battery. 
 - Colored terminal output. This alone would be enough do discard any competing tool.
 
