@@ -128,6 +128,6 @@ pub fn parse_duration(raw_duration: &str) -> Option<chrono::Duration> {
     }
 }
 
-fn parse_int(text: &str) -> Result<i64, ParseIntError> {
+pub fn parse_int(text: &str) -> Result<i64, ParseIntError> {
     Ok(text.trim().parse::<i64>()?)
 }

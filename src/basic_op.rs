@@ -1,3 +1,6 @@
+use std::{thread, time};
+use std::io::prelude::*;
+
 use colored::*;
 use chrono;
 
@@ -80,13 +83,37 @@ fn confirm_stop_current(time: chrono::DateTime<chrono::Utc>) -> bool {
     }
 }
 
-pub fn status_command() {
-    match timers::get_current_log_task() {
-        Ok(task) => match task {
-            Some(task) => print_status(&task),
-            None => println!("You are not logging on any task.")
+pub fn status_command(matches: &clap::ArgMatches) {
+    let minutes = match matches.value_of("watch") {
+        Some(val) => match parse_int(val) {
+            Ok(val) => val,
+            Err(_) => {
+                println!("Invalid watch interval '{}'", val);
+                return;
+            },
         },
-        Err(err) => println!("Error finding current task: {}", err),
+        None => 1,
+    } as u64;
+
+    loop {
+        if matches.occurrences_of("watch") != 0 {
+            print!("\x1B[H\x1B[2J\r");
+        }
+
+        match timers::get_current_log_task() {
+            Ok(task) => match task {
+                Some(task) => print_status(&task),
+                None => print!("You are not logging on any task."),
+            },
+            Err(err) => print!("Error finding current task: {}", err),
+        };
+        std::io::stdout().flush().unwrap();
+
+        if matches.occurrences_of("watch") == 0 {
+            break
+        }
+
+        thread::sleep(time::Duration::from_secs(minutes * 60));
     }
 }
 

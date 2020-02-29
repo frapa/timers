@@ -13,7 +13,7 @@ fn main() {
 
     match matches.subcommand_name() {
         Some("log") => log_command(matches.subcommand_matches("log").unwrap()),
-        Some("status") => status_command(),
+        Some("status") => status_command(matches.subcommand_matches("status").unwrap()),
         Some("stop") => stop_command(matches.subcommand_matches("stop").unwrap()),
         Some("report") => {
             let submatches = matches.subcommand_matches("report").unwrap();
@@ -54,6 +54,15 @@ fn parse_args() -> clap::ArgMatches<'static> {
         )
         .subcommand(clap::SubCommand::with_name("status")
             .about("Get logging status")
+            .arg(clap::Arg::with_name("watch")
+                .short("w")
+                .long("watch")
+                .takes_value(true)
+                .min_values(0)
+                .max_values(1)
+                .default_value("1")
+                .help("Keep watching the status, for a GUI like effect.")
+            )
         )
         .subcommand(clap::SubCommand::with_name("stop")
             .about("Stop logging time on the current task")
@@ -68,7 +77,7 @@ fn parse_args() -> clap::ArgMatches<'static> {
         .subcommand(clap::SubCommand::with_name("report")
             .about("Report statistics on the tasks")
             .subcommand(clap::SubCommand::with_name("days")
-                .about("Report statistics on days")
+                .about("Report statistics on days.")
             )
             .arg(clap::Arg::with_name("no-tot")
                 .long("--no-tot")
@@ -80,7 +89,7 @@ fn parse_args() -> clap::ArgMatches<'static> {
             .arg(clap::Arg::with_name("long")
                 .short("-l")
                 .long("--long")
-                .help("Display more information for each task")
+                .help("Display more information for each task.")
             )
         )
         .get_matches();
