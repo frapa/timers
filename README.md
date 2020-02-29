@@ -20,21 +20,24 @@ EXEC='/usr/local/bin/timers' && sudo wget https://github.com/frapa/timers/releas
 
 ### The basics 
 
-To start logging time on a task, use
+To start logging time on a task, you use the `log` (or `start`) sub-command, like this:
 
 ```bash
 $ timers log "Writing timers readme"
 @1: Writing timers readme
 status: logging
-time: 9m 4s
+time: 0s
 ```
 
-The `@1` is the task id. If you were already logging a task, `timers`
-will ask if you want to stop the current task and start the logging
+The `@1` is the task id, that you can use to reference the task later.
+
+If you were already logging a task, `timers` will ask if you want to stop the current task and start the logging
 on the new one.
  
-You can check the current logging status with `timers status`.
-You can stop logging with
+You can check the current logging status with `timers status`, which will print a message with the currently
+logged task and the amount of time you have logged on it.
+
+You can stop logging on a task with `timers stop`:
 
 ```bash
 $ timers stop
@@ -43,7 +46,7 @@ status: stopped
 time: 19m 41s
 ```
 
-You can then resume logging on a previous task by id with
+You can then resume logging on a previous task by id, as follows:
 
 ```bash
 $ timers log @1
@@ -54,7 +57,7 @@ time: 19m 41s
 
 ### Introspection commands
 
-If you want to see the list of tasks, you can issue
+If you want to see the list of all your tasks, you can run `timers tasks`
 
 ```bash
 $ timers tasks
@@ -66,7 +69,7 @@ You can get a the total time logged with the `report` command.
 It works like this:
 
 ```bash
-$ timers report days  # Or even simply timer report
+$ timers report days  # Or even simply `timers report`
 Mon: 2h 16m 
 Tue: 6h 34m 
 Wed: 4h 10m 
