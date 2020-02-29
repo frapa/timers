@@ -90,8 +90,16 @@ pub fn status_command() {
     }
 }
 
-pub fn stop_command() {
-    match timers::stop_current_task() {
+pub fn stop_command(matches: &clap::ArgMatches) {
+    let time = match matches.value_of("AT") {
+        Some(raw_time) => match parse_time(raw_time) {
+            Some(time) => time,
+            None => return
+        },
+        None => chrono::Utc::now(),
+    };
+
+    match timers::stop_current_task_at(time) {
         Ok(task) => print_status(&task),
         Err(timers::Error::Value(_)) => println!(
             "Cannot stop because you're not logging on any task."

@@ -18,14 +18,14 @@ fn main() {
     match matches.subcommand_name() {
         Some("log") => log_command(matches.subcommand_matches("log").unwrap()),
         Some("status") => status_command(),
-        Some("stop") => stop_command(),
+        Some("stop") => stop_command(matches.subcommand_matches("stop").unwrap()),
         Some("report") => {
             let submatches = matches.subcommand_matches("report").unwrap();
             match submatches.subcommand_name() {
                 Some("days") => report_days_command(submatches),
                 _ => report_days_command(submatches),
             }
-        }
+        },
         Some("tasks") => tasks_command(matches.subcommand_matches("tasks").unwrap()),
         _ => {},
     }
@@ -61,6 +61,13 @@ fn parse_args() -> clap::ArgMatches<'static> {
         )
         .subcommand(clap::SubCommand::with_name("stop")
             .about("Stop logging time on the current task")
+            .arg(clap::Arg::with_name("AT")
+                .long("at")
+                .takes_value(true)
+                .value_name("TIME")
+                .allow_hyphen_values(true)
+                .help("Stop logging at the specified time.")
+            )
         )
         .subcommand(clap::SubCommand::with_name("report")
             .about("Report statistics on the tasks")
