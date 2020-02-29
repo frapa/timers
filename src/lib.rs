@@ -112,7 +112,7 @@ pub fn format_duration(duration: chrono::Duration) -> String {
     }
 
     if duration.num_minutes() >= 60 {
-        formatted_duration.push_str(format!("{}h ", duration.num_hours()).as_str());
+        formatted_duration.push_str(format!("{}h ", duration.num_hours() % 24).as_str());
     }
 
     if duration.num_seconds() >= 60 {
