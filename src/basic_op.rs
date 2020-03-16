@@ -10,7 +10,6 @@ use super::util::*;
 
 use timers;
 use itertools::Itertools;
-use std::intrinsics::float_to_int_approx_unchecked;
 
 pub fn log_command(matches: &clap::ArgMatches) {
     // Cannot panic as the argument parser already ensures it exist
