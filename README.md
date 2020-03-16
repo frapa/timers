@@ -13,8 +13,10 @@ extremely fast and lightweight.
 On linux, just download the precompiled binary:
 
 ```bash
-EXEC='/usr/local/bin/timers' && sudo wget https://github.com/frapa/timers/releases/latest/download/timers -O $EXEC && sudo chmod +x $EXEC
+EXEC='/usr/local/bin/timers' && sudo wget https://github.com/frapa/timers/releases/latest/download/timers-linux -O $EXEC && sudo chmod +x $EXEC
 ```
+
+To update, simply run the command again, it will overwrite the old version.
 
 ## How to use
 
