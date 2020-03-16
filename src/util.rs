@@ -1,5 +1,5 @@
 use std::io::prelude::*;
-use std::num::ParseIntError;
+use std::num::{ParseIntError, ParseFloatError};
 use std::ops::Add;
 
 use colored::*;
@@ -130,4 +130,8 @@ pub fn parse_duration(raw_duration: &str) -> Option<chrono::Duration> {
 
 pub fn parse_int(text: &str) -> Result<i64, ParseIntError> {
     Ok(text.trim().parse::<i64>()?)
+}
+
+pub fn parse_float(text: &str) -> Result<f64, ParseFloatError> {
+    Ok(text.trim().parse::<f64>()?)
 }

@@ -89,6 +89,35 @@ pub fn get_all_tasks() -> Result<HashMap<u32, Task>, Error> {
     Ok(repo.list_tasks()?)
 }
 
+pub fn get_all_tasks_between(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>
+) -> Result<HashMap<u32, Task>, Error> {
+    let repo = get_repo()?;
+    let tasks = repo.list_tasks()?;
+
+    let mut filtered = HashMap::new();
+    for (id, task) in tasks {
+        for log in task.logs.iter() {
+            if log.start.ge(&start) && log.start.le(&end) {
+                filtered.insert(id,  task);
+                break
+            }
+
+            let log_end = match log.end {
+                Some(end) => end,
+                None => chrono::Utc::now(),
+            };
+            if log_end.ge(&start) && log_end.le(&end) {
+                filtered.insert(id,  task);
+                break
+            }
+        }
+    }
+
+    Ok(filtered)
+}
+
 pub fn get_total_duration(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>

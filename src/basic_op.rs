@@ -1,12 +1,15 @@
 use std::{thread, time};
 use std::io::prelude::*;
+use std::ops::Add;
 
 use colored::*;
 use chrono;
+use term_size;
 
 use super::util::*;
 
 use timers;
+use itertools::Itertools;
 
 pub fn log_command(matches: &clap::ArgMatches) {
     // Cannot panic as the argument parser already ensures it exist
@@ -85,19 +88,40 @@ fn confirm_stop_current(time: chrono::DateTime<chrono::Utc>) -> bool {
 
 pub fn status_command(matches: &clap::ArgMatches) {
     let minutes = match matches.value_of("watch") {
-        Some(val) => match parse_int(val) {
+        Some(val) => match parse_float(val) {
             Ok(val) => val,
             Err(_) => {
                 println!("Invalid watch interval '{}'", val);
                 return;
             },
         },
-        None => 1,
-    } as u64;
+        None => 1f64,
+    } as f64;
 
     loop {
+        // clear screen
         if matches.occurrences_of("watch") != 0 {
             print!("\x1B[H\x1B[2J\r");
+        }
+
+        if matches.is_present("timeline") {
+            let length = match matches.value_of("total") {
+                Some(total) => match parse_float(total) {
+                    Ok(total) => Some(total),
+                    Err(_) => {
+                        println!("Invalid value for total: '{}'", total);
+                        return
+                    },
+                },
+                None => None,
+            };
+
+            let start = chrono::Utc::today()
+                .and_hms(0, 0, 0);
+            let end = chrono::Utc::today()
+                .and_hms(0, 0, 0)
+                .add(chrono::Duration::days(1));
+            print_timeline(start, end, length);
         }
 
         match timers::get_current_log_task() {
@@ -113,8 +137,91 @@ pub fn status_command(matches: &clap::ArgMatches) {
             break
         }
 
-        thread::sleep(time::Duration::from_secs(minutes * 60));
+        thread::sleep(time::Duration::from_secs((minutes * 60f64) as u64));
     }
+}
+
+fn print_timeline(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+    length: Option<f64>,
+) {
+    let width = match term_size::dimensions() {
+        Some((w, _)) => w,
+        None => 20,
+    };
+
+    let total = match length {
+        Some(len) => len,
+        None => 8f64,
+    };
+
+    let unit = width as f64 / total;
+
+    let tasks = match timers::get_all_tasks_between(start, end) {
+        Ok(tasks) => tasks,
+        Err(err) => {
+            println!("Error computing tasks length: {}", err);
+            return;
+        }
+    };
+
+    let mut total_logged = chrono::Duration::zero();
+    for task in tasks.values() {
+        total_logged = total_logged + task.duration();
+    }
+
+    let mut cumulative = 0 as f64;
+    let mut symbol = 0;
+    for id in tasks.keys().sorted() {
+        let logged = tasks.get(id).unwrap().duration().num_seconds() as f64 / 3600. * unit;
+
+        for _ in (cumulative as i32)..((cumulative + logged) as i32) {
+            match symbol {
+                0 => print!("█"),
+                1 => print!("▒"),
+                2 => print!("▓"),
+                _ => {},
+            };
+        }
+
+        cumulative += logged;
+        symbol = (symbol + 1) % 3;
+    }
+
+    for _ in (cumulative as usize)..width {
+        print!("░");
+    }
+
+    cumulative = 0 as f64;
+    symbol = 0;
+    for id in tasks.keys().sorted() {
+        let task = tasks.get(id).unwrap();
+        let logged = task.duration().num_seconds() as f64 / 3600f64 * unit;
+        let int_logged_len = (cumulative + logged) as usize - cumulative as usize;
+
+        if logged > 12 as f64 {
+            if int_logged_len < task.name.len() {
+                let truncated_name: String = task.name.chars().take(int_logged_len-4).collect();
+                print!("{}... ", truncated_name);
+            } else {
+                print!("{}", task.name);
+                let fill = int_logged_len - task.name.len();
+                for _ in 0..fill {
+                    print!(" ");
+                }
+            }
+        } else {
+            for _ in 0..int_logged_len {
+                print!(" ");
+            }
+        }
+
+        cumulative += logged;
+        symbol = (symbol + 1) % 3;
+    }
+
+    println!("\n");
 }
 
 pub fn stop_command(matches: &clap::ArgMatches) {
