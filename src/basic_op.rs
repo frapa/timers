@@ -10,6 +10,7 @@ use super::util::*;
 
 use timers;
 use itertools::Itertools;
+use std::intrinsics::float_to_int_approx_unchecked;
 
 pub fn log_command(matches: &clap::ArgMatches) {
     // Cannot panic as the argument parser already ensures it exist
@@ -146,18 +147,6 @@ fn print_timeline(
     end: chrono::DateTime<chrono::Utc>,
     length: Option<f64>,
 ) {
-    let width = match term_size::dimensions() {
-        Some((w, _)) => w,
-        None => 20,
-    };
-
-    let total = match length {
-        Some(len) => len,
-        None => 8f64,
-    };
-
-    let unit = width as f64 / total;
-
     let tasks = match timers::get_all_tasks_between(start, end) {
         Ok(tasks) => tasks,
         Err(err) => {
@@ -170,6 +159,23 @@ fn print_timeline(
     for task in tasks.values() {
         total_logged = total_logged + task.duration();
     }
+    let total_logged_hours = total_logged.num_seconds() as f64 / 3600.;
+
+    let width = match term_size::dimensions() {
+        Some((w, _)) => w,
+        None => 20,
+    };
+
+    let mut total = match length {
+        Some(len) => len,
+        None => 8f64,
+    };
+
+    if total_logged_hours > total {
+        total = total_logged_hours;
+    }
+
+    let unit = width as f64 / total;
 
     let mut cumulative = 0 as f64;
     let mut symbol = 0;
