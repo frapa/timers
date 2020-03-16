@@ -3,10 +3,14 @@
 `timers` is a simple and effective time tracking tool with a easy-to-use
 command line interface. With `timers` you can:
 
-- Log time on tasks
+- Log time on tasks,
+- Get a report on how much you worked each day of the week,
+- Show a timeline with your tasks today,
 
 `timers` is written in rust and uses simple text files to save the tasks, which make it
 extremely fast and lightweight.
+
+![Screenshot of a terminal running timers.](images/screenshot.png)
 
 ## Install
 
