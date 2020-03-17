@@ -64,6 +64,7 @@ status: logging
 time: 1d 2h 42m
 
 # We can pass --timeline to show a nice timeline of todays tasks
+$ timers status --timeline
 █████████████████████▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░
 First task             Third task                                         
 
