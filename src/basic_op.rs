@@ -198,6 +198,8 @@ fn print_timeline(
         print!("░");
     }
 
+    println!();
+
     cumulative = 0 as f64;
     symbol = 0;
     for id in tasks.keys().sorted() {
