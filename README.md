@@ -116,6 +116,8 @@ Thu: 8h 37m
 Fri: 0s
 Sat: 0s
 Sun: 0s
+---
+total: 21h 37m 
 ```
 
 ### "Advanced" features
