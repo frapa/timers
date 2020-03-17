@@ -30,7 +30,7 @@ fn main() {
 fn parse_args() -> clap::ArgMatches<'static> {
     return clap::App::new("timers")
         .author("Francesco Pasa <francescopasa@gmail.com>")
-        .version("0.1.0")
+        .version(clap::crate_version!())
         .about("Track time spent on tasks")
         .setting(clap::AppSettings::ArgRequiredElseHelp)
         .subcommand(clap::SubCommand::with_name("log")
