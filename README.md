@@ -14,13 +14,24 @@ extremely fast and lightweight.
 
 ## Install
 
+### Linux
+
 On linux, just download the precompiled binary:
 
 ```bash
 EXEC='/usr/local/bin/timers' && sudo wget https://github.com/frapa/timers/releases/latest/download/timers-linux -O $EXEC && sudo chmod +x $EXEC
 ```
 
-To update, simply run the command again, it will overwrite the old version.
+To update, simply run the command again, it will overwrite the old version. To remove, type
+
+```bash
+EXEC='/usr/local/bin/timers' && sudo rm $EXEC
+```
+
+### Windows
+
+Download and run installer from [here](https://github.com/frapa/timers/releases/latest).
+To update, just install the new version. Remove like any other Windows program.
 
 ## How to use
 
