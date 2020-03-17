@@ -33,6 +33,9 @@ EXEC='/usr/local/bin/timers' && sudo rm $EXEC
 Download and run installer from [here](https://github.com/frapa/timers/releases/latest).
 To update, just install the new version. Remove like any other Windows program.
 
+**Note:** Colored output is supported only by PowerShell and not by CMD. If you want to use the watch feature
+you need to use a compliant terminal such as git bash.
+
 ## How to use
 
 ### The basics 
@@ -52,7 +55,25 @@ If you were already logging a task, `timers` will ask if you want to stop the cu
 on the new one.
  
 You can check the current logging status with `timers status`, which will print a message with the currently
-logged task and the amount of time you have logged on it.
+logged task and the amount of time you have logged on it:
+
+```bash
+$ timers status
+@15: Another task
+status: logging
+time: 1d 2h 42m
+
+# We can pass --timeline to show a nice timeline of todays tasks
+█████████████████████▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+First task             Third task                                         
+
+@15: Third task
+status: logging
+time: 1h 47m
+```
+
+Another cool option is `--watch` that keeps the status displayed in the console and updates it periodically
+(this option is supported for git bash in Windows).
 
 You can stop logging on a task with `timers stop`:
 
