@@ -3,6 +3,7 @@ use std::ops::Add;
 
 use dirs;
 use chrono;
+use fs_extra;
 
 mod errors;
 pub use errors::{Error, ValueError};
@@ -10,8 +11,28 @@ mod repo;
 pub use repo::{Log, Task, Repo, TaskStatus};
 
 fn get_repo() -> Result<Repo, Error> {
-    let mut path = dirs::home_dir().unwrap();
-    path.push(".timers");
+    let mut path = dirs::data_dir().unwrap();
+    path.push("timers_time_logs");
+
+    // Temporary code: migrate old folder if it exists
+    // -------------
+    let mut old_path = dirs::home_dir().unwrap();
+    old_path.push(".timers");
+    if old_path.exists() {
+        println!("Warning: Migrating files to new data location.");
+
+        // move to newpath
+        fs_extra::dir::move_dir(
+            &old_path,
+            dirs::data_dir().unwrap(),
+            &fs_extra::dir::CopyOptions::new()
+        ).unwrap();
+
+        let mut moved_path = dirs::data_dir().unwrap();
+        moved_path.push(".timers");
+        std::fs::rename(&moved_path, &path).unwrap();
+    }
+    // -------------
 
     // ensure folder exists
     if !path.exists() {
