@@ -126,10 +126,13 @@ You can start logging at a certain time with the `--at` option:
 
 ```bash
 $ timers log "Your task" --at 10:34
+
 # You can also set the time to yesterday, by prepending y
 $ timers log "Your task" --at y10:34  # yesterday at 10:34
+
 # Or you can use relative time with + and -
 $ timers log "Your task" --at -10  # 10 minutes ago
+
 # For custom things, you can specify the full local date with time
 $ timers log "Your task" --at "2019-11-10 11:10"
 ```
@@ -137,6 +140,44 @@ $ timers log "Your task" --at "2019-11-10 11:10"
 The nice thing is that if you're already logging, it will end
 the current task at the specified past time point, so no overlapping
 tasks will be logged!
+
+### Export
+
+`timers` can export data into CSV format. You can either export logs
+(which are the entries of when you started and stopped working on a task.
+each task can have multiple logs), with the detailed start and end times,
+or tasks, with aggregated duration.
+
+To export use the `export` command, followed by the name of the thing you want
+to export, as in
+
+```bash
+$ timers export logs
+Task ID,Task name,Begin (UTC),End (UTC),Duration (hours)
+1,My first task,2020-02-24T21:30:57.613882582+00:00,2020-02-26T20:36:44.803991524+00:00,47.09638888888889
+1,My first task,2020-02-26T20:36:44.805320312+00:00,2020-02-26T20:43:54.642466170+00:00,0.11916666666666667
+2,Another task,2020-02-26T20:43:54.643808060+00:00,2020-02-26T20:50:39.862161146+00:00,0.1125
+...
+
+$ timers export tasks
+Task ID,Task name,Begin (UTC),End (UTC),Duration (hours)
+Task ID,Task name,Logs,Duration (hours)
+1,My first task,1,0.0022222222222222222
+2,Another task,1,17.691944444444445
+...
+```
+
+You can also save the data to a file and only export data between certain dates:
+
+```bash
+# Save to logs.csv
+$ timers export logs -o logs.csv
+
+# Export only the February 2020 logs (to date is not included)
+$ timer export logs --from 2020-02-01 --to 2020-03-01
+```
+
+There are also other options, please consult the command line help for details.
 
 ## FAQ
 

@@ -4,6 +4,7 @@ use std::ops::Add;
 
 use crate::errors::{Error, ValueError};
 
+#[derive(Debug)]
 pub struct Log {
     pub start: chrono::DateTime<chrono::Utc>,
     pub end: Option<chrono::DateTime<chrono::Utc>>,
@@ -43,6 +44,7 @@ impl Log {
     }
 }
 
+#[derive(Debug)]
 pub struct Task {
     pub id: u32,
     pub path: std::path::PathBuf,
@@ -51,6 +53,7 @@ pub struct Task {
     pub logging: bool,
 }
 
+#[derive(Debug)]
 pub enum TaskStatus {
     Logging(),
     Stopped(),
@@ -98,6 +101,7 @@ impl Task {
     }
 }
 
+#[derive(Debug)]
 pub struct Repo {
     pub path: std::path::PathBuf,
 }

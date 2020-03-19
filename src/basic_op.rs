@@ -95,7 +95,7 @@ pub fn status_command(matches: &clap::ArgMatches) {
                 return;
             },
         },
-        None => 1f64,
+        None => 1.,
     } as f64;
 
     loop {
@@ -137,7 +137,7 @@ pub fn status_command(matches: &clap::ArgMatches) {
             break
         }
 
-        thread::sleep(time::Duration::from_secs((minutes * 60f64) as u64));
+        thread::sleep(time::Duration::from_secs((minutes * 60.) as u64));
     }
 }
 
@@ -146,6 +146,8 @@ fn print_timeline(
     end: chrono::DateTime<chrono::Utc>,
     length: Option<f64>,
 ) {
+    // TODO: this function is a bit messy and could use some clean-up
+
     let tasks = match timers::get_all_tasks_between(start, end) {
         Ok(tasks) => tasks,
         Err(err) => {
@@ -167,7 +169,7 @@ fn print_timeline(
 
     let mut total = match length {
         Some(len) => len,
-        None => 8f64,
+        None => 8.,
     };
 
     if total_logged_hours > total {
@@ -204,7 +206,7 @@ fn print_timeline(
     symbol = 0;
     for id in tasks.keys().sorted() {
         let task = tasks.get(id).unwrap();
-        let logged = task.duration().num_seconds() as f64 / 3600f64 * unit;
+        let logged = task.duration().num_seconds() as f64 / 3600. * unit;
         let int_logged_len = (cumulative + logged) as usize - cumulative as usize;
 
         if logged > 12 as f64 {

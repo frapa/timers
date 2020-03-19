@@ -54,6 +54,10 @@ pub fn parse_time(raw_time: &str) -> Option<chrono::DateTime<chrono::Utc>> {
         return Some(datetime)
     }
 
+    if let Some(date) = try_parse_date(raw_time, "%Y-%m-%d") {
+        return Some(date)
+    }
+
     if let Some(datetime) = try_parse_datetime(raw_time, "%Y-%m-%d %H:%M") {
         return Some(datetime)
     }
@@ -86,6 +90,22 @@ pub fn try_parse_datetime(raw_datetime: &str, fmt: &str) -> Option<chrono::DateT
         Ok(parsed_datetime) => {
             match chrono::Local.from_local_datetime(&parsed_datetime) {
                 Single(datetime) => Some(datetime.with_timezone(&chrono::Utc)),
+                _ => None,
+            }
+        }
+        Err(_) => None,
+    }
+}
+
+pub fn try_parse_date(raw_date: &str, fmt: &str) -> Option<chrono::DateTime<chrono::Utc>> {
+    match chrono::NaiveDate::parse_from_str(raw_date, fmt) {
+        Ok(parsed_date) => {
+            match chrono::Local.from_local_date(&parsed_date) {
+                Single(date) => Some(
+                    date
+                        .and_hms(0, 0, 0)
+                        .with_timezone(&chrono::Utc)
+                ),
                 _ => None,
             }
         }

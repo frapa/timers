@@ -7,6 +7,8 @@ mod list_op;
 use list_op::*;
 mod report_op;
 use report_op::*;
+mod import_export_op;
+use import_export_op::*;
 
 fn main() {
     let matches = parse_args();
@@ -23,6 +25,7 @@ fn main() {
             }
         },
         Some("tasks") => tasks_command(matches.subcommand_matches("tasks").unwrap()),
+        Some("export") => export_command(matches.subcommand_matches("export").unwrap()),
         _ => {},
     }
 }
@@ -100,6 +103,45 @@ fn parse_args() -> clap::ArgMatches<'static> {
                 .short("-l")
                 .long("--long")
                 .help("Display more information for each task.")
+            )
+        )
+        .subcommand(clap::SubCommand::with_name("export")
+            .about("Export tasks to CSV")
+            .arg(clap::Arg::with_name("OBJECT")
+                .required(true)
+                .index(1)
+                .possible_values(&["logs", "tasks"])
+                .help(
+                    "Either 'logs', to export log information or 'tasks' \
+                        to export task information."
+                )
+            )
+            .arg(clap::Arg::with_name("output")
+                .short("-o")
+                .long("--output")
+                .takes_value(true)
+                .number_of_values(1)
+                .help("Export to the given file instead of printing to standard output.")
+            )
+            .arg(clap::Arg::with_name("delimiter")
+                .short("-d")
+                .long("--delimiter")
+                .takes_value(true)
+                .number_of_values(1)
+                .default_value(",")
+                .help("Field delimiter to use. Only a single character is allowed.")
+            )
+            .arg(clap::Arg::with_name("from")
+                .long("--from")
+                .takes_value(true)
+                .number_of_values(1)
+                .help("Export only starting from the given date and time.")
+            )
+            .arg(clap::Arg::with_name("to")
+                .long("--to")
+                .takes_value(true)
+                .number_of_values(1)
+                .help("Export only up to the given date and time.")
             )
         )
         .get_matches();
