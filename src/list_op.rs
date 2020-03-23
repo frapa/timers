@@ -4,16 +4,18 @@ use colored::*;
 use itertools::{Itertools, enumerate};
 use crate::util::parse_int;
 
-trait TaskPrinter {
+trait PrintTasks {
     fn print_header(&self);
     fn print_ellipsis(&self);
     fn print_task(&self, task: &timers::Task);
 
-    fn print_tasks(&self, tasks: HashMap<u32, timers::Task>, num: usize) {
-        self.print_header();
+    fn print_tasks(&self, tasks: HashMap<u32, timers::Task>, num: usize, plain: bool) {
+        if !plain {
+            self.print_header();
 
-        if tasks.len() > num {
-            self.print_ellipsis();
+            if tasks.len() > num {
+                self.print_ellipsis();
+            }
         }
 
         for (i, id) in enumerate(tasks.keys().sorted()) {
@@ -29,9 +31,10 @@ trait TaskPrinter {
 
 struct ShortPrinter ();
 
-impl TaskPrinter for ShortPrinter {
+impl PrintTasks for ShortPrinter {
     fn print_header(&self) {
         println!("{:<6} {:<36} {}", "ID", "TASK", "DURATION");
+        println!("{}", "-".repeat(58));
     }
 
     fn print_ellipsis(&self) {
@@ -58,12 +61,13 @@ impl TaskPrinter for ShortPrinter {
 
 struct LongPrinter ();
 
-impl TaskPrinter for LongPrinter {
+impl PrintTasks for LongPrinter {
     fn print_header(&self) {
         println!(
             "{:<6} {:<36} {:<14} {:<8} {:<6} {}",
              "ID", "TASK", "DURATION", "STATUS", "LOGS", "LAST LOG"
         );
+        println!("{}", "-".repeat(91));
     }
 
     fn print_ellipsis(&self) {
@@ -103,17 +107,17 @@ impl TaskPrinter for LongPrinter {
 
 pub fn tasks_command(matches: &clap::ArgMatches) {
     let raw_num = matches.value_of("num").unwrap();
-    let num = parse_int(raw_num).unwrap_or_else(
-        |_| {
+    let num = parse_int(raw_num)
+        .unwrap_or_else(|_| {
             println!("Invalid number of tasks: '{}'", raw_num);
             std::process::exit(1);
-        }
-    ) as usize;
+        }) as usize;
 
+    let plain = matches.is_present("plain");
     match timers::get_all_tasks() {
         Ok(tasks) => match matches.is_present("long") {
-            true => LongPrinter{}.print_tasks(tasks, num),
-            false => ShortPrinter{}.print_tasks(tasks, num),
+            true => LongPrinter{}.print_tasks(tasks, num, plain),
+            false => ShortPrinter{}.print_tasks(tasks, num, plain),
         },
         Err(err) => println!("Error retrieving tasks: {}", err)
     }
