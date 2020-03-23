@@ -100,8 +100,10 @@ If you want to see the list of all your tasks, you can run `timers tasks`
 
 ```bash
 $ timers tasks
-@1: My first task [stopped]
-@2: Another task [logging]
+ID     TASK                                 DURATION
+----------------------------------------------------------
+@1     My first task                        2h 44m 12s
+@2     Another task                         3h 5m 47s
 ```
 
 You can get a the total time logged with the `report` command.
@@ -109,15 +111,17 @@ It works like this:
 
 ```bash
 $ timers report days  # Or even simply `timers report`
-Mon: 2h 16m 
-Tue: 6h 34m 
-Wed: 4h 10m 
-Thu: 8h 37m 
-Fri: 0s
-Sat: 0s
-Sun: 0s
----
-total: 21h 37m 
+DAY          TIME LOGGED    TASKS
+----------------------------------
+Monday       8h 26m         3
+Tuesday      7h 49m         4
+Wednesday    8h 4m          6
+Thursday     0s             0
+Friday       0s             0
+Saturday     0s             0
+Sunday       0s             0
+----------------------------------
+Total        24h 19m        13
 ```
 
 ### "Advanced" features
