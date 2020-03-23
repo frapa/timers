@@ -206,7 +206,7 @@ the "log" button on a task.
 
 **Where is my data stored? Are you stealing it?**
 
-No way, it's all in the `.timers` folder inside your user folder (typically
+No way, it's all in the `.timers` folder inside your user app data folder (typically
 `/home/<yourusername>/.local/share/timers_time_logs` on unix systems and `C:\Users\<yourusername>\AppData\Roaming\timers_time_logs`
 on Windows).
 
