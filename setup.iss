@@ -4,7 +4,7 @@
 [Setup]
 AppName=timers
 AppVersion=0.3.0
-DefaultDirName={commonpf}\timers
+DefaultDirName="{commonpf}\timers"
 ChangesEnvironment=true
 
 [Tasks]
