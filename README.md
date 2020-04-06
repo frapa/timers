@@ -204,9 +204,9 @@ You're free to use your web-based tool that will eat 100 MB of your memory, down
 of crap (including the very necessary 8 Mb of javascript code) just so you can click
 the "log" button on a task.
 
-**Where is my data stores? Are you stealing it?**
+**Where is my data stored? Are you stealing it?**
 
-No way, it's all in the `.timers` folder inside your user folder (typically
+No way, it's all in the `timers_time_logs` folder inside your user app data folder (typically
 `/home/<yourusername>/.local/share/timers_time_logs` on unix systems and `C:\Users\<yourusername>\AppData\Roaming\timers_time_logs`
 on Windows).
 
