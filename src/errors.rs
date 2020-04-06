@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct ValueError {
-    description: String
+    description: String,
 }
 
 impl std::fmt::Display for ValueError {
@@ -10,12 +10,16 @@ impl std::fmt::Display for ValueError {
 }
 
 impl std::error::Error for ValueError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { None }
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
 }
 
 impl ValueError {
     pub fn new(description: &str) -> ValueError {
-        ValueError { description: description.to_string() }
+        ValueError {
+            description: description.to_string(),
+        }
     }
 }
 

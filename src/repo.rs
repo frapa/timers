@@ -1,5 +1,5 @@
-use std::io::prelude::*;
 use std::collections::HashMap;
+use std::io::prelude::*;
 use std::ops::Add;
 
 use crate::errors::{Error, ValueError};
@@ -22,7 +22,7 @@ impl Log {
     pub fn duration_between(
         &self,
         start: chrono::DateTime<chrono::Utc>,
-        end: chrono::DateTime<chrono::Utc>
+        end: chrono::DateTime<chrono::Utc>,
     ) -> chrono::Duration {
         let task_end = if self.end.is_none() {
             chrono::Utc::now()
@@ -34,10 +34,18 @@ impl Log {
             self.duration()
         } else if start.gt(&self.start) && end.ge(&task_end) {
             let duration = task_end.signed_duration_since(start);
-            if duration.num_seconds() >= 0 { duration } else { chrono::Duration::seconds(0) }
+            if duration.num_seconds() >= 0 {
+                duration
+            } else {
+                chrono::Duration::seconds(0)
+            }
         } else if start.le(&self.start) && end.lt(&task_end) {
             let duration = end.signed_duration_since(self.start);
-            if duration.num_seconds() >= 0 { duration } else { chrono::Duration::seconds(0) }
+            if duration.num_seconds() >= 0 {
+                duration
+            } else {
+                chrono::Duration::seconds(0)
+            }
         } else {
             end.signed_duration_since(start)
         }
@@ -72,7 +80,7 @@ impl Task {
     pub fn duration_between(
         &self,
         start: chrono::DateTime<chrono::Utc>,
-        end: chrono::DateTime<chrono::Utc>
+        end: chrono::DateTime<chrono::Utc>,
     ) -> chrono::Duration {
         let mut total = chrono::Duration::seconds(0);
 
@@ -86,7 +94,7 @@ impl Task {
     pub fn status(&self) -> TaskStatus {
         for log in self.logs.iter() {
             if log.end.is_none() {
-                return TaskStatus::Logging()
+                return TaskStatus::Logging();
             }
         }
 
@@ -111,20 +119,23 @@ impl Repo {
         let file = std::fs::File::open(&path)?;
         let mut reader = std::io::BufReader::new(file);
 
-        let mut id_str= String::new();
+        let mut id_str = String::new();
         reader.read_line(&mut id_str)?;
-        let id = id_str.trim().parse::<u32>().expect("Unexpected or corrupt id value in task file");
+        let id = id_str
+            .trim()
+            .parse::<u32>()
+            .expect("Unexpected or corrupt id value in task file");
 
         let mut name = String::new();
         reader.read_line(&mut name)?;
 
         let mut logs = Vec::new();
-        let mut logging= false;
+        let mut logging = false;
         loop {
             let mut line = String::new();
             let num_bytes_read = reader.read_line(&mut line)?;
             if num_bytes_read == 0 {
-                break
+                break;
             }
 
             let split: Vec<&str> = line.split(" ").collect();
@@ -141,10 +152,12 @@ impl Repo {
                 end: if logging {
                     None
                 } else {
-                    Some(chrono::DateTime::parse_from_rfc3339(end)
-                        .expect("Unexpected or corrupt end date value in task file")
-                        .with_timezone(&chrono::Utc))
-                }
+                    Some(
+                        chrono::DateTime::parse_from_rfc3339(end)
+                            .expect("Unexpected or corrupt end date value in task file")
+                            .with_timezone(&chrono::Utc),
+                    )
+                },
             })
         }
 
@@ -228,7 +241,7 @@ impl Repo {
     pub fn log_task(
         &self,
         task: &mut Task,
-        time: chrono::DateTime<chrono::Utc>
+        time: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), Error> {
         task.logging = true;
         task.logs.push(Log {
@@ -244,23 +257,25 @@ impl Repo {
     pub fn stop_task(
         &self,
         task: &mut Task,
-        time: chrono::DateTime<chrono::Utc>
+        time: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), Error> {
         task.logging = false;
 
         match task.logs.last_mut() {
             Some(log) => {
                 if log.end.is_some() {
-                    return Err(Error::Value(
-                        ValueError::new("Task was not started, cannot stop logging.")
-                    ))
+                    return Err(Error::Value(ValueError::new(
+                        "Task was not started, cannot stop logging.",
+                    )));
                 }
 
                 log.end = Some(time)
-            },
-            None => return Err(Error::Value(
-                ValueError::new("Task was not started, cannot stop logging.")
-            ))
+            }
+            None => {
+                return Err(Error::Value(ValueError::new(
+                    "Task was not started, cannot stop logging.",
+                )))
+            }
         }
 
         Repo::write_task(&task)?;
@@ -268,5 +283,3 @@ impl Repo {
         Ok(())
     }
 }
-
-
