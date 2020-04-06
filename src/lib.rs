@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 use std::ops::Add;
 
-use dirs;
 use chrono;
+use dirs;
 use fs_extra;
 
 mod errors;
 pub use errors::{Error, ValueError};
 mod repo;
-pub use repo::{Log, Task, Repo, TaskStatus};
+pub use repo::{Log, Repo, Task, TaskStatus};
 
 fn get_repo() -> Result<Repo, Error> {
     let mut path = dirs::data_dir().unwrap();
@@ -25,8 +25,9 @@ fn get_repo() -> Result<Repo, Error> {
         fs_extra::dir::move_dir(
             &old_path,
             dirs::data_dir().unwrap(),
-            &fs_extra::dir::CopyOptions::new()
-        ).unwrap();
+            &fs_extra::dir::CopyOptions::new(),
+        )
+        .unwrap();
 
         let mut moved_path = dirs::data_dir().unwrap();
         moved_path.push(".timers");
@@ -39,9 +40,7 @@ fn get_repo() -> Result<Repo, Error> {
         std::fs::create_dir_all(&path)?;
     }
 
-    Ok(Repo {
-        path,
-    })
+    Ok(Repo { path })
 }
 
 pub fn create_task(name: &str) -> Result<Task, Error> {
@@ -79,13 +78,13 @@ pub fn get_current_log_task() -> Result<Option<Task>, Error> {
     for (id, task) in tasks.iter() {
         if task.logging {
             found_id = Some(*id);
-            break
+            break;
         }
     }
 
     match found_id {
         Some(id) => Ok(tasks.remove(&id)),
-        None => Ok(None)
+        None => Ok(None),
     }
 }
 
@@ -96,8 +95,10 @@ pub fn stop_current_task_at(at: chrono::DateTime<chrono::Utc>) -> Result<Task, E
         Some(mut task) => {
             repo.stop_task(&mut task, at)?;
             Ok(task)
-        },
-        None => Err(Error::Value(ValueError::new("Not task currently being logged.")))
+        }
+        None => Err(Error::Value(ValueError::new(
+            "Not task currently being logged.",
+        ))),
     }
 }
 
@@ -112,7 +113,7 @@ pub fn get_all_tasks() -> Result<HashMap<u32, Task>, Error> {
 
 pub fn get_all_tasks_between(
     start: chrono::DateTime<chrono::Utc>,
-    end: chrono::DateTime<chrono::Utc>
+    end: chrono::DateTime<chrono::Utc>,
 ) -> Result<HashMap<u32, Task>, Error> {
     let repo = get_repo()?;
     let tasks = repo.list_tasks()?;
@@ -121,8 +122,8 @@ pub fn get_all_tasks_between(
     for (id, task) in tasks {
         for log in task.logs.iter() {
             if log.start.ge(&start) && log.start.le(&end) {
-                filtered.insert(id,  task);
-                break
+                filtered.insert(id, task);
+                break;
             }
 
             let log_end = match log.end {
@@ -130,8 +131,8 @@ pub fn get_all_tasks_between(
                 None => chrono::Utc::now(),
             };
             if log_end.ge(&start) && log_end.le(&end) {
-                filtered.insert(id,  task);
-                break
+                filtered.insert(id, task);
+                break;
             }
         }
     }
@@ -141,7 +142,7 @@ pub fn get_all_tasks_between(
 
 pub fn get_total_duration(
     start: chrono::DateTime<chrono::Utc>,
-    end: chrono::DateTime<chrono::Utc>
+    end: chrono::DateTime<chrono::Utc>,
 ) -> Result<chrono::Duration, Error> {
     let repo = get_repo()?;
 
@@ -170,8 +171,26 @@ pub fn format_duration(duration: chrono::Duration) -> String {
     }
 
     if duration.num_seconds() < 60 {
-        formatted_duration.push_str(format!("{}s", duration.num_seconds() % 60).as_str());
+        formatted_duration.push_str(format!("{}s ", duration.num_seconds() % 60).as_str());
     }
 
-    formatted_duration
+    formatted_duration.trim().to_string()
+}
+
+pub fn format_duration_hours(duration: chrono::Duration) -> String {
+    let mut formatted_duration = String::new();
+
+    if duration.num_minutes() >= 60 {
+        formatted_duration.push_str(format!("{}h ", duration.num_hours()).as_str());
+    }
+
+    if duration.num_seconds() >= 60 {
+        formatted_duration.push_str(format!("{}m ", duration.num_minutes() % 60).as_str());
+    }
+
+    if duration.num_seconds() < 60 {
+        formatted_duration.push_str(format!("{}s ", duration.num_seconds() % 60).as_str());
+    }
+
+    formatted_duration.trim().to_string()
 }
