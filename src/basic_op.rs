@@ -101,10 +101,13 @@ pub fn status_command(matches: &clap::ArgMatches) {
         }
 
         if matches.is_present("timeline") {
-            let start = chrono::Utc::today().and_hms(0, 0, 0);
-            let end = chrono::Utc::today()
+            let start = chrono::Local::today()
                 .and_hms(0, 0, 0)
-                .add(chrono::Duration::days(1));
+                .with_timezone(&chrono::Utc);
+            let end = chrono::Local::today()
+                .and_hms(0, 0, 0)
+                .add(chrono::Duration::days(1))
+                .with_timezone(&chrono::Utc);
             print_timeline(start, end);
         } else {
             match timers::get_current_log_task() {
@@ -219,8 +222,10 @@ fn print_timeline_log(
     end: chrono::DateTime<chrono::Utc>,
 ) {
     let duration = timers::format_duration(end - start);
-    let start = start.format("%H:%M").to_string();
-    let end = end.format("%H:%M").to_string();
+    let start = start.with_timezone(&chrono::Local)
+        .format("%H:%M").to_string();
+    let end = end.with_timezone(&chrono::Local)
+        .format("%H:%M").to_string();
     match size {
         0 => println!(
             " ◇ {} -> {} {} [{}]",
