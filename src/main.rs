@@ -72,12 +72,6 @@ fn parse_args() -> clap::ArgMatches<'static> {
                         .long("timeline")
                         .help("Print timeline with the current status today."),
                 )
-                .arg(
-                    clap::Arg::with_name("total")
-                        .long("tot")
-                        .takes_value(true)
-                        .help("Set the timeline span in hours. Defaults to 8."),
-                ),
         )
         .subcommand(
             clap::SubCommand::with_name("stop")

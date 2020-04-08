@@ -7,8 +7,6 @@ use term_size;
 
 use super::util::*;
 
-use itertools::Itertools;
-use std::collections::HashMap;
 use timers;
 
 pub fn log_command(matches: &clap::ArgMatches) {
@@ -103,22 +101,11 @@ pub fn status_command(matches: &clap::ArgMatches) {
         }
 
         if matches.is_present("timeline") {
-            let length = match matches.value_of("total") {
-                Some(total) => match parse_float(total) {
-                    Ok(total) => Some(total),
-                    Err(_) => {
-                        println!("Invalid value for total: '{}'", total);
-                        return;
-                    }
-                },
-                None => None,
-            };
-
             let start = chrono::Utc::today().and_hms(0, 0, 0);
             let end = chrono::Utc::today()
                 .and_hms(0, 0, 0)
                 .add(chrono::Duration::days(1));
-            print_timeline(start, end, length);
+            print_timeline(start, end);
         } else {
             match timers::get_current_log_task() {
                 Ok(task) => match task {
@@ -137,15 +124,6 @@ pub fn status_command(matches: &clap::ArgMatches) {
     }
 }
 
-fn get_logged_hours(tasks: &HashMap<u32, timers::Task>) -> f64 {
-    let mut logged = chrono::Duration::zero();
-    for task in tasks.values() {
-        logged = logged + task.duration();
-    }
-    let logged_hours = logged.num_seconds() as f64 / 3600.;
-    logged_hours
-}
-
 fn get_term_height() -> f64 {
     (match term_size::dimensions() {
         Some((_, h)) => h,
@@ -156,78 +134,128 @@ fn get_term_height() -> f64 {
 fn print_timeline(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
-    length: Option<f64>,
 ) {
-    let tasks = match timers::get_all_tasks_between(start, end) {
-        Ok(tasks) => tasks,
+    let mut logs = match timers::get_all_logs_between(start, end) {
+        Ok(logs) => logs,
         Err(err) => {
-            println!("Error computing tasks length: {}", err);
+            println!("Error while retrieving logs: {}", err);
             return;
         }
     };
 
-    let total_logged_hours = get_logged_hours(&tasks);
-    let height = get_term_height() - 1.;
-
-    let mut total = length.unwrap_or(8.);
-    if total_logged_hours > total {
-        total = total_logged_hours;
+    if logs.len() == 0 {
+        println!("There are no logs.");
+        return;
     }
 
-    let unit = height as f64 / total;
+    clip_logs(start, end, &mut logs).unwrap();
 
-    print_vertical_timeline(&tasks, unit);
+    let unit = compute_unit(&logs).unwrap();
+
+    let mut cumulative = 0.;
+    let mut printed_size = 0;
+    for (task, log) in logs.iter() {
+        let size = log.duration().num_seconds() as f64 * unit;
+        cumulative += size;
+
+        let print_size = cumulative as i32 - printed_size;
+
+        print_timeline_log(&task.name, print_size, log.start, log.end());
+
+        printed_size += print_size;
+    }
 }
 
-fn print_vertical_timeline(tasks: &HashMap<u32, timers::Task>, unit: f64) {
-    let mut cumulative = 0 as f64;
-    for id in tasks.keys().sorted() {
-        let task = tasks.get(id).unwrap();
-        let size = task.duration().num_seconds() as f64 / 3600. * unit;
-
-        let int_size = (size - cumulative).round() as i32;
-
-        let duration = timers::format_duration(task.duration());
-        let start = task.logs.last().unwrap().start.format("%H:%M").to_string();
-        let end = match task.logs.last().unwrap().end {
-            Some(end) => end.format("%H:%M").to_string(),
-            None => String::from(""),
-        };
-        match int_size {
-            0 => println!(
-                " ◇ {} -> {} {} [{}]",
-                start,
-                end,
-                task.name.bold(),
-                duration,
-            ),
-            1 => println!(
-                " ◇ {} -> {} {} [{}]",
-                start,
-                end,
-                task.name.bold(),
-                duration,
-            ),
-            2 => {
-                println!(" ◇ {} {} [{}]", start, task.name.bold(), duration);
-                println!(" | {}", end);
-            }
-            3 => {
-                println!(" ◇ {}", task.logs.last().unwrap().start.format("%H:%M"));
-                println!(" | {} [{}]", task.name.bold(), duration);
-                println!(" ◆ {}", end);
-            }
-            n => {
-                println!(" ◇ {}", task.logs.last().unwrap().start.format("%H:%M"));
-                println!(" | {}", task.name.bold());
-                println!(" | {}", duration);
-                for _ in 0..(n - 4) {
-                    println!(" |");
-                }
-                println!(" ◆ {}", end);
-            }
-        };
+fn clip_logs(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+    logs: &mut Vec<(timers::Task, timers::Log)>
+) -> Result<(), timers::Error> {
+    if logs.len() == 0 {
+        return Err(timers::Error::Value(timers::ValueError::new("There are no logs.")));
     }
+
+    {
+        let mut first = logs.first_mut().unwrap();
+        let logs_start = first.1.start;
+
+        if logs_start < start {
+            first.1.start = start;
+        }
+    }
+
+    {
+        let mut last = logs.last_mut().unwrap();
+        let logs_end = last.1.end();
+
+        if logs_end > end {
+            last.1.end = Some(end);
+        }
+    }
+
+    Ok(())
+}
+
+fn compute_unit(logs: &Vec<(timers::Task, timers::Log)>) -> Result<f64, timers::Error> {
+    if logs.len() == 0 {
+        return Err(timers::Error::Value(timers::ValueError::new("There are no logs.")));
+    }
+
+    let start = logs.first().unwrap().1.start;
+    let end = logs.last().unwrap().1.end();
+
+    let timespan = end - start;
+    let height = get_term_height() - 1.;
+
+    let unit = height as f64 / timespan.num_seconds() as f64;
+
+    Ok(unit)
+}
+
+fn print_timeline_log(
+    name: &str,
+    size: i32,
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+) {
+    let duration = timers::format_duration(end - start);
+    let start = start.format("%H:%M").to_string();
+    let end = end.format("%H:%M").to_string();
+    match size {
+        0 => println!(
+            " ◇ {} -> {} {} [{}]",
+            start,
+            end,
+            name.bold(),
+            duration,
+        ),
+        1 => println!(
+            " ◇ {} -> {} {} [{}]",
+            start,
+            end,
+            name.bold(),
+            duration,
+        ),
+        2 => {
+            println!(" ◇ {} {} [{}]", start, name.bold(), duration);
+            println!(" | {}", end);
+        }
+        3 => {
+            println!(" ◇ {}", start);
+            println!(" | {} [{}]", name.bold(), duration);
+            println!(" ◆ {}", end);
+        }
+        n => {
+            println!("{} {}", n, size);
+            println!(" ◇ {}", start);
+            println!(" | {}", name.bold());
+            println!(" | {}", duration);
+            for _ in 0..(n - 4) {
+                println!(" |");
+            }
+            println!(" ◆ {}", end);
+        }
+    };
 }
 
 pub fn stop_command(matches: &clap::ArgMatches) {

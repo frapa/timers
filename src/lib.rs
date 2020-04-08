@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::ops::Add;
 
 use chrono;
@@ -140,6 +141,28 @@ pub fn get_all_tasks_between(
     Ok(filtered)
 }
 
+// Returns all logs between start and end,
+// sorted chronologically
+pub fn get_all_logs_between(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+) -> Result<Vec<(Task, Log)>, Error> {
+    let tasks = get_all_tasks_between(start, end)?;
+
+    let mut logs = BTreeMap::new();
+    for task in tasks.values() {
+        for log in task.logs.iter() {
+            if log.start > end || log.end() < start {
+                continue
+            }
+
+            logs.insert(log.start, (task.clone(), *log));
+        }
+    }
+
+    Ok(logs.values().map(|log| log.clone()).collect())
+}
+
 pub fn get_total_duration(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
@@ -193,4 +216,44 @@ pub fn format_duration_hours(duration: chrono::Duration) -> String {
     }
 
     formatted_duration.trim().to_string()
+}
+
+pub fn find_start(tasks: &HashMap<u32, Task>) -> Result<chrono::DateTime<chrono::Utc>, Error> {
+    if tasks.len() == 0 {
+        return Err(Error::Value(ValueError::new("There are no tasks.")));
+    }
+
+    let mut start = tasks
+        .values().next().unwrap()
+        .logs.first().unwrap()
+        .start
+    ;
+    for task in tasks.values() {
+        let log = task.logs.first().unwrap();
+
+        if log.start < start {
+            start = log.start;
+        }
+    }
+    Ok(start)
+}
+
+pub fn find_end(tasks: &HashMap<u32, Task>) -> Result<chrono::DateTime<chrono::Utc>, Error> {
+    if tasks.len() == 0 {
+        return Err(Error::Value(ValueError::new("There are no tasks.")));
+    }
+
+    let mut end = tasks
+        .values().next().unwrap()
+        .logs.last().unwrap()
+        .end()
+    ;
+    for task in tasks.values() {
+        let log = task.logs.last().unwrap();
+
+        if log.end() < end {
+            end = log.end();
+        }
+    }
+    Ok(end)
 }

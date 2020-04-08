@@ -4,7 +4,7 @@ use std::ops::Add;
 
 use crate::errors::{Error, ValueError};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Log {
     pub start: chrono::DateTime<chrono::Utc>,
     pub end: Option<chrono::DateTime<chrono::Utc>>,
@@ -24,11 +24,7 @@ impl Log {
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
     ) -> chrono::Duration {
-        let task_end = if self.end.is_none() {
-            chrono::Utc::now()
-        } else {
-            self.end.unwrap()
-        };
+        let task_end = self.end();
 
         if start.le(&self.start) && end.ge(&task_end) {
             self.duration()
@@ -50,9 +46,17 @@ impl Log {
             end.signed_duration_since(start)
         }
     }
+
+    pub fn end(&self) -> chrono::DateTime<chrono::Utc> {
+        if self.end.is_none() {
+            chrono::Utc::now()
+        } else {
+            self.end.unwrap()
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Task {
     pub id: u32,
     pub path: std::path::PathBuf,
@@ -61,7 +65,7 @@ pub struct Task {
     pub logging: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum TaskStatus {
     Logging(),
     Stopped(),
