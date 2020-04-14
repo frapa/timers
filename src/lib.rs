@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::BTreeMap;
 use std::ops::Add;
+use std::path::PathBuf;
 
 use chrono;
 use dirs;
@@ -11,9 +12,14 @@ pub use errors::{Error, ValueError};
 mod repo;
 pub use repo::{Log, Repo, Task, TaskStatus};
 
-fn get_repo() -> Result<Repo, Error> {
+fn data_path() -> PathBuf {
     let mut path = dirs::data_dir().unwrap();
     path.push("timers_time_logs");
+    path
+}
+
+fn get_repo() -> Result<Repo, Error> {
+    let path = data_path();
 
     // Temporary code: migrate old folder if it exists
     // -------------
@@ -256,4 +262,10 @@ pub fn find_end(tasks: &HashMap<u32, Task>) -> Result<chrono::DateTime<chrono::U
         }
     }
     Ok(end)
+}
+
+pub fn task_path(task: u32) -> PathBuf {
+    let mut path = data_path();
+    path.push(task.to_string());
+    path
 }

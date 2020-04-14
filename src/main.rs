@@ -25,6 +25,7 @@ fn main() {
             }
         }
         Some("tasks") => tasks_command(matches.subcommand_matches("tasks").unwrap()),
+        Some("edit") => edit_command(matches.subcommand_matches("edit").unwrap()),
         Some("export") => export_command(matches.subcommand_matches("export").unwrap()),
         _ => {}
     }
@@ -40,10 +41,14 @@ fn parse_args() -> clap::ArgMatches<'static> {
             clap::SubCommand::with_name("log")
                 .alias("start")
                 .about("Log time on a task")
-                .arg(clap::Arg::with_name("TASK").required(true).index(1).help(
-                    "Name of the task to log, or ID of an existing task, \
-                        to continue logging on an existing task.",
-                ))
+                .arg(clap::Arg::with_name("TASK")
+                    .required(true)
+                    .index(1)
+                    .help(
+                        "Name of the task to log, or ID of an existing task, \
+                            to continue logging on an existing task.",
+                    )
+                )
                 .arg(
                     clap::Arg::with_name("AT")
                         .long("at")
@@ -88,7 +93,9 @@ fn parse_args() -> clap::ArgMatches<'static> {
         .subcommand(
             clap::SubCommand::with_name("report")
                 .about("Report statistics on the tasks")
-                .subcommand(clap::SubCommand::with_name("days").about("Report statistics on days."))
+                .subcommand(clap::SubCommand::with_name("days")
+                    .about("Report statistics on days.")
+                )
                 .arg(
                     clap::Arg::with_name("plain")
                         .long("--plain")
@@ -121,6 +128,16 @@ fn parse_args() -> clap::ArgMatches<'static> {
                         .long("--plain")
                         .help("Omit printing table header."),
                 ),
+        )
+        .subcommand(
+            clap::SubCommand::with_name("edit")
+                .about("Edit a task")
+                .arg(clap::Arg::with_name("TASK")
+                    .required(true)
+                    .index(1)
+                    .help("The ID of the task to be edited.",
+                )
+            )
         )
         .subcommand(
             clap::SubCommand::with_name("export")

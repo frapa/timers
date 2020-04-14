@@ -4,6 +4,7 @@ use std::{thread, time};
 use chrono;
 use colored::*;
 use term_size;
+use scrawl;
 
 use super::util::*;
 
@@ -279,4 +280,17 @@ pub fn stop_command(matches: &clap::ArgMatches) {
         }
         Err(err) => println!("An stopping task: {}", err),
     }
+}
+
+pub fn edit_command(matches: &clap::ArgMatches) {
+    let task = matches.value_of("TASK").unwrap();
+    
+    match task.trim_start_matches('@').parse::<u32>() {
+        Ok(task_id) => {
+            let path = timers::task_path(task_id);
+            let path_ref = path.to_str().unwrap();
+            scrawl::editor::new().file(path_ref).edit().open().unwrap();
+        },
+        Err(_) => println!("'{}' is an invalid task ID", task),
+    };
 }
